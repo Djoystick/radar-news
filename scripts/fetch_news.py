@@ -9,19 +9,15 @@ from lingua import LanguageDetectorBuilder
 
 from config import NEWS_SOURCES, EXCLUDE_KEYWORDS, TECH_KEYWORDS
 
-# Путь к заглушке для изображений (относительно корня репо)
 PLACEHOLDER_IMAGE = "assets/placeholder.jpg"
 
-# Лимиты, чтобы не раздувать JSON
-MAX_NEWS_PER_SOURCE = 50       # максимум новостей с одного источника
-MAX_TOTAL_NEWS = 500           # общий максимум новостей в news.json
+MAX_NEWS_PER_SOURCE = 50
+MAX_TOTAL_NEWS = 500
 
-# Детектор языка для отсечения нерусских новостей
 detector = LanguageDetectorBuilder.from_all_languages().build()
 
 
 def clean_html(text):
-    """Удаляет HTML-теги из текста."""
     if not text:
         return ""
     soup = BeautifulSoup(text, "html.parser")
@@ -29,7 +25,6 @@ def clean_html(text):
 
 
 def is_russian(text):
-    """Проверяет, что текст на русском языке."""
     if not text or len(text) < 20:
         return False
     language = detector.detect_language_of(text)
@@ -37,18 +32,13 @@ def is_russian(text):
 
 
 def is_political(news_item):
-    """
-    Строгий стоп-лист:
-    - базируется на EXCLUDE_KEYWORDS из config.py;
-    - расширен доп. словами про войны, Украину, США, митинги и т.п.
-    """
     extra_stop = [
         "украина", "украине", "киев", "донбасс",
         "сша", "нато", "зеленский", "зеленского",
         "байден", "санкции", "конфликт", "боевые действия",
         "фронт", "обстрел", "армия", "военный", "военных",
         "мирные жители", "митинг", "протест", "референдум",
-        "днр", "лнр", "граница", "террорист", "теракт"
+        "днр", "лнр", "граница", "террорист", "теракт",
     ]
 
     title = news_item.get("title", "").lower()
@@ -65,14 +55,6 @@ def is_political(news_item):
 
 
 def is_technology(news_item):
-    """
-    Строгий whitelist:
-    Новость считается техно/игровой, только если:
-    - есть совпадения с TECH_KEYWORDS, И
-    - выполняется одно из условий:
-      а) найдено >= 2 разных техно-ключей,
-      б) есть хотя бы один "жёсткий" техно-триггер.
-    """
     text = (news_item.get("title", "") + " " + news_item.get("description", "")).lower()
 
     hard_triggers = [
@@ -87,24 +69,20 @@ def is_technology(news_item):
         "fintech", "финтех",
         "стартап", "стартапы",
         "программирование", "разработчик", "разработчики",
-        "devops", "cloud", "облако", "сервер", "дата-центр"
+        "devops", "cloud", "облако", "сервер", "дата-центр",
     ]
 
-    # 1) ищем совпадения по TECH_KEYWORDS
     matched_keywords = set()
     for word in TECH_KEYWORDS:
         if word.lower() in text:
             matched_keywords.add(word.lower())
 
-    # если нет ни одного техно-слова — сразу не техно
     if not matched_keywords:
         return False
 
-    # 2) если есть жёсткий триггер — сразу техно
     if any(trigger in text for trigger in hard_triggers):
         return True
 
-    # 3) иначе требуем минимум два разных техно-ключа
     if len(matched_keywords) >= 2:
         return True
 
@@ -112,7 +90,6 @@ def is_technology(news_item):
 
 
 def extract_hashtags(title, description):
-    """Извлекает хэштеги на основе TECH_KEYWORDS."""
     hashtags = set()
     search_text = (title + " " + description).lower()
     for word in TECH_KEYWORDS:
@@ -122,7 +99,6 @@ def extract_hashtags(title, description):
 
 
 def extract_image(entry):
-    """Пытается вытащить URL изображения из RSS-записи."""
     if hasattr(entry, "media_content") and entry.media_content:
         return entry.media_content[0].get("url", "")
 
@@ -145,7 +121,6 @@ def extract_image(entry):
 
 
 def parse_date(date_string):
-    """Парсит дату из RSS в ISO-формат."""
     try:
         if date_string:
             parsed_date = date_parser.parse(date_string)
@@ -156,10 +131,6 @@ def parse_date(date_string):
 
 
 def is_only_titles(feed):
-    """
-    Проверяет, что у большинства записей нет нормального текста, только заголовки.
-    Такие источники пропускаем.
-    """
     count_only_title = 0
     for entry in feed.entries:
         body = ""
@@ -176,7 +147,6 @@ def is_only_titles(feed):
 
 
 def fetch_feed(source):
-    """Собирает и фильтрует новости из одного RSS-источника."""
     news_items = []
     try:
         print(f"Загрузка: {source['name']}...")
@@ -204,7 +174,6 @@ def fetch_feed(source):
 
             description = clean_html(description)
 
-            # Отбрасываем нерусские новости
             if not is_russian(description):
                 continue
 
@@ -227,7 +196,6 @@ def fetch_feed(source):
                 "hashtags": hashtags,
             }
 
-            # Строгая фильтрация: сначала стоп-лист, затем техно-фильтр
             if not is_political(news_item) and is_technology(news_item):
                 news_items.append(news_item)
 
@@ -240,7 +208,6 @@ def fetch_feed(source):
 
 
 def fetch_all_news():
-    """Собирает новости со всех источников и сортирует их по дате."""
     all_news = []
     print("=" * 60)
     print("СТАРТ СБОРА ТЕХНО-НОВОСТЕЙ ДЛЯ АГРЕГАТОРА 'РАДАР'")
@@ -261,7 +228,6 @@ def fetch_all_news():
 
 
 def save_to_json(news_data, output_path):
-    """Сохраняет итоговый JSON в корень репозитория."""
     output = {
         "lastUpdated": datetime.now().isoformat(),
         "totalNews": len(news_data),
@@ -276,4 +242,17 @@ def save_to_json(news_data, output_path):
 
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(script
+    project_root = os.path.dirname(script_dir)
+    output_file = os.path.join(project_root, "news.json")
+
+    news_data = fetch_all_news()
+    if news_data:
+        save_to_json(news_data, output_file)
+        print("\n✓✓✓ СБОР НОВОСТЕЙ ЗАВЕРШЕН ✓✓✓\n")
+    else:
+        print("\n✗✗✗ НЕ УДАЛОСЬ СОБРАТЬ НОВОСТИ ✗✗✗\n")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
