@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Радар - агрегатор технологических новостей">
+    <title>Радар | Новости технологий</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header__content">
+                <div class="logo">
+                    <img src="assets/logo_radar.png" alt="Радар" class="logo__img">
+                </div>
+                <nav class="nav">
+                    <span class="last-update">Обновлено: <span id="lastUpdate">загрузка...</span></span>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <section class="search-bar">
+        <div class="container">
+            <input type="text" id="newsSearchInput" class="news-search-input" placeholder="Поиск по заголовкам и описаниям...">
+        </div>
+    </section>
+
+    <section class="filters">
+        <div class="container">
+            <h2 class="filters__title">Категории и темы (теги)</h2>
+            <div class="filters__buttons" id="categoryFilters">
+                <button class="filter-btn active" data-category="all">Все новости</button>
+            </div>
+            <div class="hashtag-cloud" id="hashtagCloud"></div>
+        </div>
+    </section>
+
+    <main class="main">
+        <div class="container">
+            <div class="news-grid" id="newsGrid">
+                <div class="loading">Загрузка новостей...</div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal" id="newsModal">
+        <div class="modal__overlay" id="modalOverlay"></div>
+        <div class="modal__content">
+            <button class="modal__close" id="modalClose">
+                <svg width="24" height="24"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="modal__header">
+                <img id="modalImage" src="" alt="" class="modal__image">
+                <div class="modal__meta">
+                    <span class="modal__category" id="modalCategory"></span>
+                    <span class="modal__source" id="modalSource"></span>
+                    <span class="modal__date" id="modalDate"></span>
+                </div>
+                <h2 id="modalTitle" class="modal__title"></h2>
+                <div id="modalHashtags" class="modal__hashtags"></div>
+            </div>
+            <div class="modal__body">
+                <p id="modalDescription" class="modal__description"></p>
+                <a id="modalLink" href="#" target="_blank" rel="noopener noreferrer" class="modal__link">
+                    Читать полностью на источнике →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Радар. Автоматический агрегатор технологических новостей.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
