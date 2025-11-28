@@ -1,266 +1,148 @@
-const PLACEHOLDER_IMAGE = '/assets/placeholder.jpg';
+// Элементы DOM
+const newsListEl = document.getElementById('news-list');
+const searchInputEl = document.getElementById('search-input');
 
-let allNews = [];
-let filteredNews = [];
-let allHashtags = [];
-let currentCategory = 'all';
-let currentHashtag = null;
-let currentSearchQuery = '';
+const modalEl = document.getElementById('modal');
+const modalTitleEl = document.getElementById('modal-title');
+const modalImageEl = document.getElementById('modal-image');
+const modalSummaryEl = document.getElementById('modal-summary');
+const modalLinkEl = document.getElementById('modal-link');
+const modalCloseBtn = document.getElementById('modal-close');
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadNews();
-    setupEventListeners();
-    setupSearch();
-});
+// Данные
+let newsData = [];
+let filteredData = [];
 
-async function loadNews() {
-    try {
-        const response = await fetch('news.json');
-        if (!response.ok) throw new Error('Не удалось загрузить новости');
-        const data = await response.json();
-        allNews = data.news || [];
-        allHashtags = data.hashtags || [];
-        updateLastUpdateTime(data.lastUpdated);
-        createCategoryFilters(data.categories);
-        createHashtagCloud(allHashtags);
-        filterNews('all', null);
-    } catch (error) {
-        showError('Не удалось загрузить новости. Попробуйте обновить страницу.');
-    }
+// ----------------------------------------------------
+// Детектор touch-устройств для адаптивного поведения
+// ----------------------------------------------------
+const isTouchDevice =
+  matchMedia('(hover: none)').matches || 'ontouchstart' in window;
+
+if (isTouchDevice) {
+  document.body.classList.add('touch');
+} else {
+  document.body.classList.add('no-touch');
 }
 
+// ----------------------------------------------------
+// Рендер списка новостей
+// ----------------------------------------------------
+function renderNewsList(list) {
+  if (!newsListEl) return;
 
-function createCategoryFilters(categories) {
-    const filtersContainer = document.getElementById('categoryFilters');
-    if (!filtersContainer) return;
-    const allButton = document.createElement('button');
-    allButton.className = 'filter-btn active';
-    allButton.dataset.category = 'all';
-    allButton.textContent = 'Все новости';
-    allButton.addEventListener('click', () => {
-        currentCategory = 'all';
-        currentHashtag = null;
-        filterNews('all', null);
-    });
-    filtersContainer.innerHTML = '';
-    filtersContainer.appendChild(allButton);
-    categories.sort().forEach(category => {
-        const button = document.createElement('button');
-        button.className = 'filter-btn';
-        button.dataset.category = category;
-        button.textContent = category;
-        button.addEventListener('click', () => {
-            currentHashtag = null;
-            filterNews(category, null);
-        });
-        filtersContainer.appendChild(button);
-    });
-}
+  newsListEl.innerHTML = '';
 
-function createHashtagCloud(hashtags) {
-    const cloud = document.getElementById('hashtagCloud');
-    if (!cloud) return;
-    cloud.innerHTML = '';
-    hashtags.sort().forEach(tag => {
-        const btn = document.createElement('button');
-        btn.className = 'hashtag-btn';
-        btn.textContent = tag;
-        btn.addEventListener('click', () => {
-            currentCategory = 'all';
-            filterNews('all', tag);
-            document.querySelectorAll('.hashtag-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        });
-        cloud.appendChild(btn);
-    });
-}
+  if (!list || list.length === 0) {
+    const empty = document.createElement('p');
+    empty.textContent = 'Новости не найдены.';
+    newsListEl.appendChild(empty);
+    return;
+  }
 
-function setupSearch() {
-    const searchInput = document.getElementById('newsSearchInput');
-    if (!searchInput) return;
-    searchInput.addEventListener('input', () => {
-        currentSearchQuery = searchInput.value.trim().toLowerCase();
-        filterNews(currentCategory, currentHashtag);
-    });
-}
-
-function filterNews(category, hashtag) {
-    currentCategory = category;
-    currentHashtag = hashtag;
-
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (hashtag) {
-            if (btn.dataset.category === 'all') btn.classList.add('active');
-        } else {
-            if (btn.dataset.category === category) btn.classList.add('active');
-        }
-    });
-
-    document.querySelectorAll('.hashtag-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.textContent === hashtag) btn.classList.add('active');
-    });
-
-    let newsToShow = [...allNews];
-    if (category !== 'all') newsToShow = newsToShow.filter(news => news.category === category);
-    if (hashtag) newsToShow = newsToShow.filter(news => news.hashtags && news.hashtags.includes(hashtag));
-    if (currentSearchQuery.length > 0) {
-        newsToShow = newsToShow.filter(news =>
-            (news.title && news.title.toLowerCase().includes(currentSearchQuery)) ||
-            (news.description && news.description.toLowerCase().includes(currentSearchQuery))
-        );
-    }
-    filteredNews = newsToShow;
-    renderNews();
-}
-
-function renderNews() {
-    const newsGrid = document.getElementById('newsGrid');
-    if (!newsGrid) return;
-    newsGrid.innerHTML = '';
-    if (filteredNews.length === 0) {
-        newsGrid.innerHTML = '<div class="no-news">Новостей по выбранной теме нет</div>';
-        return;
-    }
-    filteredNews.forEach((news, index) => {
-        newsGrid.appendChild(createNewsCard(news, index));
-    });
-}
-
-function createNewsCard(news, index) {
+  list.forEach(item => {
     const card = document.createElement('article');
-    card.className = 'news-card';
-    card.addEventListener('click', () => openModal(news));
-    const image = document.createElement('img');
-    image.className = 'news-card__image';
-    image.src = news.image || PLACEHOLDER_IMAGE;
-    image.alt = news.title;
-    image.loading = 'lazy';
-    image.onerror = () => { image.src = PLACEHOLDER_IMAGE; };
-    const content = document.createElement('div');
-    content.className = 'news-card__content';
+    card.className = 'news-item';
+
     const meta = document.createElement('div');
-    meta.className = 'news-card__meta';
-    const category = document.createElement('span');
-    category.className = 'news-card__category';
-    category.textContent = news.category;
-    const source = document.createElement('span');
-    source.className = 'news-card__source';
-    source.textContent = news.source;
-    const date = document.createElement('span');
-    date.className = 'news-card__date';
-    date.textContent = formatDate(news.pubDate);
-    meta.appendChild(category);
-    meta.appendChild(source);
-    meta.appendChild(date);
+    meta.className = 'news-item__meta';
+    const category = item.category || '';
+    const source = item.source || '';
+    meta.textContent = [category, source].filter(Boolean).join(' • ');
+
     const title = document.createElement('h3');
-    title.className = 'news-card__title';
-    title.textContent = news.title;
-    const description = document.createElement('p');
-    description.className = 'news-card__description';
-    description.textContent = news.shortDescription;
-    const hashtagsDiv = document.createElement('div');
-    hashtagsDiv.className = 'news-card__hashtags';
-    (news.hashtags || []).forEach(tag => {
-        const span = document.createElement('span');
-        span.className = 'hashtag';
-        span.textContent = tag;
-        span.addEventListener('click', (e) => {
-            e.stopPropagation();
-            filterNews('all', tag);
-        });
-        hashtagsDiv.appendChild(span);
+    title.className = 'news-item__title';
+    title.textContent = item.title || '';
+
+    const descr = document.createElement('p');
+    descr.className = 'news-item__descr';
+    descr.textContent = item.shortDescription || item.description || '';
+
+    const more = document.createElement('div');
+    more.className = 'news-item__more';
+    more.textContent = 'Читать далее →';
+
+    card.appendChild(meta);
+    card.appendChild(title);
+    card.appendChild(descr);
+    card.appendChild(more);
+
+    card.addEventListener('click', () => showModal(item));
+
+    newsListEl.appendChild(card);
+  });
+}
+
+// ----------------------------------------------------
+// Поиск по заголовкам и описаниям
+// ----------------------------------------------------
+function applyFilter() {
+  const q = (searchInputEl?.value || '').trim().toLowerCase();
+
+  if (!q) {
+    filteredData = newsData.slice();
+  } else {
+    filteredData = newsData.filter(item => {
+      const text =
+        (item.title || '') +
+        ' ' +
+        (item.description || '') +
+        ' ' +
+        (item.source || '');
+      return text.toLowerCase().includes(q);
     });
-    const footer = document.createElement('div');
-    footer.className = 'news-card__footer';
-    const readMore = document.createElement('span');
-    readMore.className = 'news-card__read-more';
-    readMore.textContent = 'Читать далее →';
-    footer.appendChild(readMore);
-    content.appendChild(meta);
-    content.appendChild(title);
-    content.appendChild(description);
-    content.appendChild(hashtagsDiv);
-    content.appendChild(footer);
-    card.appendChild(image);
-    card.appendChild(content);
-    return card;
+  }
+
+  renderNewsList(filteredData);
 }
 
-function formatDate(isoDate) {
-    const date = new Date(isoDate);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-    if (diffHours < 1) return 'только что';
-    else if (diffHours < 24) return `${diffHours} ч. назад`;
-    else if (diffDays < 7) return `${diffDays} дн. назад`;
-    else return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+if (searchInputEl) {
+  searchInputEl.addEventListener('input', () => applyFilter());
 }
 
-function openModal(news) {
-    const modal = document.getElementById('newsModal');
-    if (!modal) return;
-    const modalImage = document.getElementById('modalImage');
-    const modalCategory = document.getElementById('modalCategory');
-    const modalSource = document.getElementById('modalSource');
-    const modalDate = document.getElementById('modalDate');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalDescription = document.getElementById('modalDescription');
-    const modalLink = document.getElementById('modalLink');
-    const modalHashtags = document.getElementById('modalHashtags');
-    if (modalImage) {
-        modalImage.src = news.image || PLACEHOLDER_IMAGE;
-        modalImage.alt = news.title;
-        modalImage.style.display = news.image ? 'block' : 'none';
-        modalImage.onerror = () => { modalImage.src = PLACEHOLDER_IMAGE; };
+// ----------------------------------------------------
+// Модальное окно
+// ----------------------------------------------------
+function showModal(item) {
+  if (!modalEl) return;
+
+  modalTitleEl.textContent = item.title || '';
+  modalSummaryEl.textContent = item.description || item.shortDescription || '';
+  modalLinkEl.href = item.link || '#';
+  modalImageEl.src = item.image || 'assets/placeholder.jpg';
+
+  modalEl.classList.remove('modal-hidden');
+}
+
+if (modalCloseBtn && modalEl) {
+  modalCloseBtn.addEventListener('click', () => {
+    modalEl.classList.add('modal-hidden');
+  });
+
+  modalEl.addEventListener('click', e => {
+    if (e.target === modalEl) {
+      modalEl.classList.add('modal-hidden');
     }
-    if (modalCategory) modalCategory.textContent = news.category;
-    if (modalSource) modalSource.textContent = news.source;
-    if (modalDate) modalDate.textContent = new Date(news.pubDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    if (modalTitle) modalTitle.textContent = news.title;
-    if (modalDescription) modalDescription.textContent = news.description;
-    if (modalLink) modalLink.href = news.link;
-    if (modalHashtags) {
-        modalHashtags.innerHTML = '';
-        (news.hashtags || []).forEach(tag => {
-            const span = document.createElement('span');
-            span.className = 'hashtag';
-            span.textContent = tag;
-            span.addEventListener('click', (e) => {
-                e.stopPropagation();
-                filterNews('all', tag);
-                closeModal();
-            });
-            modalHashtags.appendChild(span);
-        });
+  });
+}
+
+// ----------------------------------------------------
+// Загрузка news.json
+// ----------------------------------------------------
+async function loadNews() {
+  try {
+    const res = await fetch('news.json');
+    const data = await res.json();
+
+    // news.json может быть массивом или объектом { news: [...] }
+    newsData = Array.isArray(data) ? data : (data.news || []);
+    applyFilter();
+  } catch (e) {
+    console.error('Ошибка загрузки news.json', e);
+    if (newsListEl) {
+      newsListEl.textContent = 'Ошибка загрузки новостей.';
     }
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+  }
 }
 
-function closeModal() {
-    const modal = document.getElementById('newsModal');
-    if (!modal) return;
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-}
-
-function setupEventListeners() {
-    const modalClose = document.getElementById('modalClose');
-    const modalOverlay = document.getElementById('modalOverlay');
-    if (modalClose) modalClose.addEventListener('click', closeModal);
-    if (modalOverlay) modalOverlay.addEventListener('click', closeModal);
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeModal();
-    });
-}
-
-function showError(message) {
-    const newsGrid = document.getElementById('newsGrid');
-    if (!newsGrid) return;
-    newsGrid.innerHTML = `<div class="no-news"><p>${message}</p></div>`;
-}
-
+loadNews();
