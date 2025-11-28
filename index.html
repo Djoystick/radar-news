@@ -25,7 +25,12 @@
 
   <main>
     <section class="container">
-      <h2 class="section-title">Новости</h2>
+      <div id="tag-cloud" class="tag-cloud"></div>
+      <div id="category-filters" class="category-filters"></div>
+
+      <div id="error-message" class="message message-error" style="display:none;"></div>
+      <div id="empty-message" class="message message-empty" style="display:none;"></div>
+
       <div id="news-list"></div>
     </section>
   </main>
@@ -37,9 +42,9 @@
   </footer>
 
   <!-- Модальное окно -->
-  <div id="modal" class="modal-hidden">
-    <div id="modal-content">
-      <button id="modal-close">×</button>
+  <div id="modal" class="modal modal-hidden">
+    <div id="modal-content" class="modal-content">
+      <button id="modal-close" class="modal-close">×</button>
       <h2 id="modal-title"></h2>
       <img id="modal-image" src="assets/placeholder.jpg" alt="Новость" />
       <p id="modal-summary"></p>
