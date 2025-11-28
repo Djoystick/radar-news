@@ -29,21 +29,6 @@ async function loadNews() {
     }
 }
 
-function updateLastUpdateTime(isoDate) {
-    const lastUpdateEl = document.getElementById('lastUpdate');
-    if (!lastUpdateEl) return;
-    const date = new Date(isoDate);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    let timeString;
-    if (diffMins < 1) timeString = 'только что';
-    else if (diffMins < 60) timeString = `${diffMins} мин. назад`;
-    else if (diffHours < 24) timeString = `${diffHours} ч. назад`;
-    else timeString = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-    lastUpdateEl.textContent = timeString;
-}
 
 function createCategoryFilters(categories) {
     const filtersContainer = document.getElementById('categoryFilters');
@@ -278,3 +263,4 @@ function showError(message) {
     if (!newsGrid) return;
     newsGrid.innerHTML = `<div class="no-news"><p>${message}</p></div>`;
 }
+
