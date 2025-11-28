@@ -1,6 +1,3 @@
-MAX_NEWS_PER_SOURCE = 25
-MAX_TOTAL_NEWS = 100
-
 NEWS_SOURCES = [
     {"name": "РБК Новости", "url": "https://rssexport.rbc.ru/rbcnews/news/20/full.rss", "category": "Новости"},
     {"name": "Ведомости", "url": "https://www.vedomosti.ru/rss/news", "category": "Новости"},
@@ -11,7 +8,7 @@ NEWS_SOURCES = [
     {"name": "Газета.ru Тех", "url": "https://www.gazeta.ru/export/rss/tech.xml", "category": "Технологии"},
     {"name": "Mail.ru Тех", "url": "https://news.mail.ru/rss/technology/", "category": "Технологии"},
     {"name": "Яндекс Компьютеры", "url": "https://news.yandex.ru/computers.rss", "category": "Технологии"},
-    {"name": "Habr", "url": "https://habr.com/ru/rss/all/", "category": "Технологии"},  # ← добавлен Habr!
+    {"name": "Habr", "url": "https://habr.com/ru/rss/all/", "category": "Технологии"},
     {"name": "vc.ru", "url": "https://vc.ru/rss", "category": "Технологии"},
     {"name": "DTF", "url": "https://dtf.ru/rss/all", "category": "Игры"},
     {"name": "3DNews", "url": "https://3dnews.ru/news/rss/", "category": "Технологии"},
@@ -29,5 +26,27 @@ NEWS_SOURCES = [
     {"name": "ApiX-Drive", "url": "https://apix-drive.com/ru/rss/news.xml", "category": "Технологии"},
     {"name": "NGS Технологии", "url": "https://ngs.ru/text/tech/rss/", "category": "Технологии"},
     {"name": "E1 Новости", "url": "https://www.e1.ru/text/rss/", "category": "Новости"},
-    {"name": "74.ru Новости", "url": "https://74.ru/text/rss.xml", "category": "Новости"},
+    {"name": "74.ru Новости", "url": "https://74.ru/text/rss.xml", "category": "Новости"}
+]
+
+EXCLUDE_KEYWORDS = [
+    "политика", "выборы", "депутат", "санкции", "закон", "министр",
+    "парламент", "президент", "госдума", "правительство", "митинг",
+    "суд", "общество", "конфликт", "армия", "война", "мобилизация", "коррупция",
+    "СВО", "спецоперация", "реформа", "Путин", "партия", "голосование",
+    "законопроект", "Кремль", "заседание", "комитет", "госслужба", "совфед",
+    "разрешение", "ограничения", "акция", "пенсия", "инфляция", "налоги"
+]
+
+TECH_KEYWORDS = [
+    "технологии", "it", "гаджет", "интернет", "смартфон", "кибер",
+    "разработка", "программирование", "software", "hardware", "робот",
+    "компьютер", "криптовалюта", "блокчейн", "cloud", "облако", "инженерия",
+    "ux", "ui", "дизайн", "искусственный интеллект", "ai", "машинное обучение",
+    "big data", "стартап", "наука", "финтех", "электроника", "тест",
+    "графика", "web", "сеть", "веб", "сервер", "api", "радар", "game", "игры",
+    "AR", "VR", "devops", "радио", "электротехника", "микросхемы", "gpu", "cpu",
+    "анализ данных", "обработка данных", "тесты", "платформа", "cloud", "IoT",
+    "ИИ", "AI", "нейросеть", "алгоритм", "datacenter", "структура", "код",
+    "инновация", "интеграция", "приложение", "цифровизация", "цифровой"
 ]
