@@ -4,7 +4,6 @@ const categoryFiltersEl = document.getElementById('category-filters');
 const searchInputEl = document.getElementById('search-input');
 
 const modalEl = document.getElementById('modal');
-const modalContentEl = document.getElementById('modal-content');
 const modalTitleEl = document.getElementById('modal-title');
 const modalImageEl = document.getElementById('modal-image');
 const modalSummaryEl = document.getElementById('modal-summary');
@@ -142,7 +141,7 @@ function filterByTag(tag) {
   }
 }
 
-// основной фильтр
+// основной фильтр (категория + строка поиска)
 
 function filterNews(category, searchQuery) {
   currentCategory = category;
@@ -173,7 +172,7 @@ function filterNews(category, searchQuery) {
   }
 }
 
-// рендер списка новостей
+// рендер списка новостей с превью-картинкой
 
 function renderNewsList(list) {
   if (!newsListEl) return;
@@ -183,6 +182,15 @@ function renderNewsList(list) {
   list.forEach(item => {
     const card = document.createElement('article');
     card.className = 'news-item';
+
+    // превью-картинка
+    const thumbWrap = document.createElement('div');
+    thumbWrap.className = 'news-item__thumb';
+    const thumbImg = document.createElement('img');
+    thumbImg.className = 'news-item__img';
+    thumbImg.src = item.image || 'assets/placeholder.jpg';
+    thumbImg.alt = item.title || 'Превью';
+    thumbWrap.appendChild(thumbImg);
 
     const meta = document.createElement('div');
     meta.className = 'news-item__meta';
@@ -202,6 +210,7 @@ function renderNewsList(list) {
     more.className = 'news-item__more';
     more.textContent = 'Читать далее →';
 
+    card.appendChild(thumbWrap);
     card.appendChild(meta);
     card.appendChild(title);
     card.appendChild(descr);
